@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.codewen.mapper.ArticleMapper">
+
+
+    <!--List<Archives> listArchives(int listSize);-->
+    <select id="listArchives" parameterType="int" resultType="com.codewen.dos.Archives">
+        select year(FROM_UNIXTIME(create_date/1000)) as years, month(FROM_UNIXTIME(create_date/1000)) as months,
+        count(*) as count from ms_article GROUP BY years, months ORDER BY count desc limit ${listSize}
+    </select>
+
+    <!--List<Article> listArticlePage(PageParams pageParams);-->
+    <select id="listArticlePage" parameterType="com.codewen.vo.params.PageParams" resultType="com.codewen.pojo.Article">
+        select * from ms_article
+        <where>
+            1 = 1
+            <if test="pageParams.categoryId != null">
+                and category_id = #{pageParams.categoryId}
+            </if>
+            <if test="pageParams.tagId != null">
+                and id in (select article_id from ms_article_tag where tag_id=#{pageParams.tagId})
+            </if>
+            <if test="pageParams.year != null and pageParams.year != '' and pageParams.month != null and pageParams.month != ''">
+                and year(FROM_UNIXTIME(create_date/1000))=#{pageParams.year}
+                and month(FROM_UNIXTIME(create_date/1000))=#{pageParams.month}
+            </if>
+        </where>
+        <if test="pageParams.sort != null and pageParams.sort == 'desc'">
+            order by create_date desc
+        </if>
+    </select>
+
+</mapper>
